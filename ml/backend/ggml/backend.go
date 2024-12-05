@@ -1,5 +1,7 @@
 package ggml
 
+// #cgo CFLAGS: -std=c11
+// #cgo CXXFLAGS: -std=c++11
 // #cgo CPPFLAGS: -DNDEBUG
 // #include <stdlib.h>
 // #include <stdint.h>

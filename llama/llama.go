@@ -3,63 +3,18 @@ package llama
 //go:generate make -j 8
 
 /*
-#cgo CFLAGS: -O2 -std=c11 -DGGML_BUILD=1 -DNDEBUG -DLOG_DISABLE_LOGS -DGGML_USE_LLAMAFILE
-#cgo CXXFLAGS: -O2 -std=c++11 -DGGML_BUILD=1 -DNDEBUG -DLOG_DISABLE_LOGS -DGGML_USE_LLAMAFILE
-#cgo amd64,avx CFLAGS: -mavx
-#cgo amd64,avx CXXFLAGS: -mavx
-#cgo amd64,avx2 CFLAGS: -mavx2 -mfma
-#cgo amd64,avx2 CXXFLAGS: -mavx2 -mfma
-#cgo amd64,f16c CFLAGS: -mf16c
-#cgo amd64,f16c CXXFLAGS: -mf16c
-#cgo amd64,fma CFLAGS: -mfma
-#cgo amd64,fma CXXFLAGS: -mfma
-#cgo avx CFLAGS: -mavx
-#cgo avx CXXFLAGS: -mavx
-#cgo avx2 CFLAGS: -mavx2 -mfma -mf16c
-#cgo avx2 CXXFLAGS: -mavx2 -mfma -mf16c
-#cgo cuda CFLAGS: -fPIE -DGGML_USE_CUDA -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128 -DGGML_CUDA_MMV_Y=1 -DGGML_BUILD=1
-#cgo cuda CFLAGS: -fPIE -DGGML_USE_CUDA -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128 -DGGML_CUDA_MMV_Y=1 -DGGML_BUILD=1
-#cgo cuda CXXFLAGS: -DGGML_USE_CUDA -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128 -DGGML_CUDA_MMV_Y=1 -DGGML_BUILD=1
-#cgo cuda CXXFLAGS: -DGGML_USE_CUDA -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128 -DGGML_CUDA_MMV_Y=1 -DGGML_BUILD=1
-#cgo cuda_jetpack5 LDFLAGS: -lggml_cuda_jetpack5 -L/usr/local/cuda-11/lib64
-#cgo cuda_jetpack6 LDFLAGS: -lggml_cuda_jetpack6 -L/usr/local/cuda-12/lib64
-#cgo cuda_v11 LDFLAGS: -lggml_cuda_v11 -L/usr/local/cuda-11/lib64
-#cgo cuda_v12 LDFLAGS: -lggml_cuda_v12 -L/usr/local/cuda-12/lib64
-#cgo darwin,amd64 CFLAGS: -Wno-incompatible-pointer-types-discards-qualifiers
-#cgo darwin,amd64 CXXFLAGS: -Wno-incompatible-pointer-types-discards-qualifiers
-#cgo darwin,amd64 LDFLAGS: -framework Foundation
-#cgo darwin,amd64,avx2 CFLAGS: -DGGML_USE_ACCELERATE -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
-#cgo darwin,amd64,avx2 CXXFLAGS: -DGGML_USE_ACCELERATE -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64
-#cgo darwin,amd64,avx2 LDFLAGS: -framework Accelerate
-#cgo darwin,arm64 CFLAGS: -DGGML_USE_METAL -DGGML_USE_ACCELERATE -DGGML_METAL_EMBED_LIBRARY -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64 -DGGML_USE_BLAS
-#cgo darwin,arm64 CXXFLAGS: -DGGML_USE_METAL -DGGML_USE_ACCELERATE -DGGML_METAL_EMBED_LIBRARY -DACCELERATE_NEW_LAPACK -DACCELERATE_LAPACK_ILP64 -DGGML_USE_BLAS
-#cgo darwin,arm64 LDFLAGS: -framework Foundation -framework Metal -framework MetalKit -framework Accelerate
-#cgo linux CFLAGS: -D_GNU_SOURCE
-#cgo linux CXXFLAGS: -D_GNU_SOURCE
+#cgo CFLAGS: -std=c11
+#cgo CXXFLAGS: -std=c++11
+#cgo CPPFLAGS: -DNDEBUG -DLOG_DISABLE_LOGS -DGGML_BUILD=1 -I../ml/backend/ggml
+#cgo cuda_jetpack5 LDFLAGS: -lggml_cuda_jetpack5
+#cgo cuda_jetpack6 LDFLAGS: -lggml_cuda_jetpack6
+#cgo cuda_v11 LDFLAGS: -lggml_cuda_v11
+#cgo cuda_v12 LDFLAGS: -lggml_cuda_v12
 #cgo linux,amd64 LDFLAGS: -L${SRCDIR}/build/Linux/amd64
-#cgo linux,amd64 LDFLAGS: -L${SRCDIR}/build/Linux/amd64
-#cgo linux,arm64 CFLAGS: -D__aarch64__ -D__ARM_NEON -D__ARM_FEATURE_FMA
-#cgo linux,arm64 CXXFLAGS: -D__aarch64__ -D__ARM_NEON -D__ARM_FEATURE_FMA
 #cgo linux,arm64 LDFLAGS: -L${SRCDIR}/build/Linux/arm64
-#cgo linux,arm64,sve CFLAGS: -march=armv8.6-a+sve
-#cgo linux,arm64,sve CXXFLAGS: -march=armv8.6-a+sve
-#cgo linux,cuda LDFLAGS: -lcuda -lcudart -lcublas -lcublasLt -lpthread -ldl -lrt -lresolv
-#cgo linux,rocm LDFLAGS: -L/opt/rocm/lib -lpthread -ldl -lrt -lresolv
-#cgo rocm CFLAGS: -DGGML_USE_CUDA -DGGML_USE_HIPBLAS -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128 -DGGML_CUDA_MMV_Y=1 -DGGML_BUILD=1
-#cgo rocm CXXFLAGS: -DGGML_USE_CUDA -DGGML_USE_HIPBLAS -DGGML_CUDA_DMMV_X=32 -DGGML_CUDA_PEER_MAX_BATCH_SIZE=128 -DGGML_CUDA_MMV_Y=1 -DGGML_BUILD=1
-#cgo rocm LDFLAGS: -L${SRCDIR} -lggml_rocm -lhipblas -lamdhip64 -lrocblas
-#cgo windows CFLAGS: -Wno-discarded-qualifiers -D_WIN32_WINNT=0x602
-#cgo windows CXXFLAGS: -D_WIN32_WINNT=0x602
-#cgo windows LDFLAGS: -lmsvcrt
-#cgo windows LDFLAGS: -lmsvcrt -static-libstdc++ -static-libgcc -static
+#cgo rocm LDFLAGS: -lggml_rocm
 #cgo windows,amd64 LDFLAGS: -L${SRCDIR}/build/Windows/amd64
-#cgo windows,amd64 LDFLAGS: -L${SRCDIR}/build/Windows/amd64
-#cgo windows,arm64 CFLAGS: -D__aarch64__ -D__ARM_NEON -D__ARM_FEATURE_FMA
-#cgo windows,arm64 CXXFLAGS: -D__aarch64__ -D__ARM_NEON -D__ARM_FEATURE_FMA
 #cgo windows,arm64 LDFLAGS: -L${SRCDIR}/build/Windows/arm64
-#cgo windows,arm64 LDFLAGS: -L${SRCDIR}/build/Windows/arm64
-#cgo windows,cuda LDFLAGS: -lcuda -lcudart -lcublas -lcublasLt
-#cgo windows,rocm LDFLAGS: -lggml_rocm -lhipblas -lamdhip64 -lrocblas
 
 #include <stdlib.h>
 #include "llama.h"
@@ -93,6 +48,8 @@ import (
 	"slices"
 	"strings"
 	"unsafe"
+
+	_ "github.com/ollama/ollama/ml/backend/ggml"
 )
 
 var CpuFeatures = ""
